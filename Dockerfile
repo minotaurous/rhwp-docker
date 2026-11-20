@@ -4,7 +4,8 @@ RUN rustup target add wasm32-unknown-unknown \
     && cargo install wasm-pack@0.15.0
 WORKDIR /app
 COPY src /app
-RUN sh scripts/wasm-pack-locked.sh --target web
+RUN sh scripts/wasm-pack-locked.sh --target web \
+    && rm -rf target /usr/local/cargo/registry/cache
 
 # 2단계: rhwp-studio 웹 프론트엔드 빌드
 FROM node:20-alpine AS web-builder
