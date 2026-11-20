@@ -1,0 +1,43 @@
+name: Build and Push rhwp
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # 매주 월요일 UTC 03:00 (KST 12:00)
+  workflow_dispatch:    # 수동 실행 버튼 활성화
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout build repo
+        uses: actions/checkout@v4
+
+      - name: Checkout rhwp source
+        uses: actions/checkout@v4
+        with:
+          repository: edwardkim/rhwp
+          path: src
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/rhwp-docker:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
